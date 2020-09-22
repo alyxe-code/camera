@@ -64,5 +64,6 @@ class MainViewModel : ViewModel() {
         fun requestPermissionStorage()
         fun startCamera()
         fun takePicture()
+        fun openGallery()
     }
 }
