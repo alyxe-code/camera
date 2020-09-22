@@ -3,4 +3,5 @@
     <string name="take_picture">Take picture</string>
 
     <string name="save_picture_file_name">IMG_%d%d%d_%d%d%d</string>
+    <string name="something_gone_wrong">Oooops, Something gone wrong..</string>
 </resources>

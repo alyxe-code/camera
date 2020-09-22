@@ -16,6 +16,13 @@ class MainViewModel : ViewModel() {
         }
     val permissions: LiveData<Permission> = MutableLiveData(_permission)
 
+    private var _lastPicture: Uri? = null
+        set(value) {
+            field = value
+            (lastPicture as MutableLiveData).postValue(value)
+        }
+    val lastPicture: LiveData<Uri> = MutableLiveData()
+
     private val _navigation = LiveNavigationImpl<Navigation>()
     val navigation: LiveNavigation<Navigation> = _navigation
 
@@ -49,9 +56,11 @@ class MainViewModel : ViewModel() {
 
     fun onTakePictureRequested() = _navigation.call { takePicture() }
 
-    fun onTakePictureSucceeded(uri: Uri) = Unit
+    fun onTakePictureSucceeded(uri: Uri) {
+        _lastPicture = uri
+    }
 
-    fun onTakePictureFailure(t: Throwable) = Unit
+    fun onTakePictureFailure(t: Throwable) = _navigation.call { displayThrowable(t) }
 
 
     class Permission(
@@ -65,5 +74,6 @@ class MainViewModel : ViewModel() {
         fun startCamera()
         fun takePicture()
         fun openGallery()
+        fun displayThrowable(t: Throwable)
     }
 }

@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.ContentValues
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
 import androidx.appcompat.app.AppCompatActivity
@@ -13,6 +14,9 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.bitmap.CenterCrop
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.google.android.material.snackbar.Snackbar
 import com.p2lem8dev.testcameraapp.databinding.ActivityMainBinding
 import java.util.*
@@ -38,18 +42,19 @@ class MainActivity : AppCompatActivity(), MainViewModel.Navigation {
             MainViewModelFactory
         )[MainViewModel::class.java]
 
+        binding.lifecycleOwner = this
+        binding.viewModel = viewModel
+
+        viewModel.lastPicture.observe(this, this::onPictureChanged)
         viewModel.navigation.observe(this, this)
     }
 
-    private var snackbar: Snackbar? = null
-    private fun showSnackbar(message: String) {
-        snackbar?.dismiss()
-        snackbar = Snackbar.make(
-            binding.root,
-            message,
-            Snackbar.LENGTH_LONG
-        )
-        snackbar?.show()
+    private fun onPictureChanged(uri: Uri?) {
+        uri ?: return
+        Glide.with(applicationContext)
+            .load(uri)
+            .transform(CenterCrop(), RoundedCorners(25))
+            .into(binding.openGallery)
     }
 
     override fun requestPermissionCamera() = requestPermission(Manifest.permission.CAMERA) {
@@ -170,16 +175,31 @@ class MainActivity : AppCompatActivity(), MainViewModel.Navigation {
 
                 override fun onError(exception: ImageCaptureException) {
                     viewModel.onTakePictureFailure(exception)
-                    showSnackbar(
-                        exception.localizedMessage
-                            ?: exception.message
-                            ?: "Something gone wrong..."
-                    )
+//                    showSnackbar(
+//                        exception.localizedMessage
+//                            ?: exception.message
+//                            ?: "Something gone wrong..."
+//                    )
                 }
             }
         )
     }
 
+    override fun openGallery(): Unit = TODO("Not yet implemented")
+
+    override fun displayThrowable(t: Throwable) =
+        showSnackbar(t.localizedMessage ?: t.message ?: getString(R.string.something_gone_wrong))
+
+    private var snackbar: Snackbar? = null
+    private fun showSnackbar(message: String) {
+        snackbar?.dismiss()
+        snackbar = Snackbar.make(
+            binding.root,
+            message,
+            Snackbar.LENGTH_LONG
+        )
+        snackbar?.show()
+    }
 
     object MainViewModelFactory : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
